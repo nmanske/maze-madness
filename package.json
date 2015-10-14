@@ -1,0 +1,41 @@
+{
+  "name": "maze-madness",
+  "version": "0.0.1",
+  "description": "A multiplayer web application",
+  "contributors": [
+    {
+      "name": "Nathan Manske",
+      "email": "nathan.manske@utexas.edu"
+    },
+    {
+      "name": "Akshar Patel",
+      "email": "name2@example.com"
+    },
+    {
+      "name": "Amon",
+      "email": "name3@example.com"
+    },
+    {
+      "name": "Arvind Sundaram",
+      "email": "name4@example.com"
+    },
+    {
+      "name": "Vannara Houth",
+      "email": "name5@example.com"
+    },
+  ],
+  "engines": {
+    "node": "4.2.1",
+    "npm": "2.14.7"
+  },
+  "dependencies": {
+    "socket.io": "1.3.7"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nmanske/maze-madness"
+  },
+  "bugs": {
+    "url": "https://github.com/nmanske/maze-madness/issues"
+  }
+}
