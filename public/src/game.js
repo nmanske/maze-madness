@@ -1,24 +1,27 @@
-//initialize game
-var Q = Quintus()
-      .include('Sprites, Scenes, Input, 2D, Touch, UI')
-      .setup()
+window.addEventListener("load",function() {
+  var Q = window.Q = Quintus()
+      .include("Sprites, Scenes, Input, 2D, Touch, UI")
+      .setup("mazeGame")
       .controls()
       .touch();
-      // You can create a sub-class by extending the Q.Sprite class to create Q.Player
-      Q.Sprite.extend("Player",{
 
-        // the init constructor is called on creation
+      Q.gravityX = 0;
+      Q.gravityY = 0;
+
+      // player extends Q.sprite class
+      Q.Sprite.extend("Player", {
+
         init: function(p) {
 
-          // You can call the parent's constructor with this._super(..)
+          // call parent constructor
           this._super(p, {
-            sheet: "player",  // Setting a sprite sheet sets sprite width and height
-            x: 410,           // You can also set additional properties that can
-            y: 90            // be overridden on object creation
+            sheet: "player",  // set sprite width and height
+            x: 410,
+            y: 90
           });
 
-          // Add in pre-made components to get up and running quickly
-          this.add('2d, platformerControls');
+          // adds four way controls onto a sprite
+          this.add('2d, stepControls');
 
           // Write event handlers to respond hook into behaviors.
           // hit.sprite is called everytime the player collides with a sprite
@@ -75,7 +78,7 @@ Q.scene("level1",function(stage) {
 
   // Add in a tile layer, and make it the collision layer
   stage.collisionLayer(new Q.TileLayer({
-                             dataAsset: 'level.json',
+                             dataAsset: '/maps/arena.json',
                              sheet:     'tiles' }));
 
   // Create the player and add him to the stage
@@ -118,15 +121,16 @@ Q.scene('endGame',function(stage) {
 
 // Q.load can be called at any time to load additional assets
 // assets that are already loaded will be skipped
-Q.load("sprites.png, sprites.json, level.json, tiles.png",
+Q.load("/images/sprites.png, /images/sprites.json, /maps/arena.json, /images/tiles.png",
   // The callback will be triggered when everything is loaded
   function() {
     // Sprites sheets can be created manually
-    Q.sheet("tiles","tiles.png", { tilew: 32, tileh: 32 });
+    Q.sheet("tiles","/images/tiles.png", { tilew: 32, tileh: 32 });
 
     // Or from a .json asset that defines sprite locations
-    Q.compileSheets("sprites.png","sprites.json");
+    Q.compileSheets("/images/sprites.png","/images/sprites.json");
 
     // Finally, call stageScene to run the game
     Q.stageScene("level1");
   });
+});
