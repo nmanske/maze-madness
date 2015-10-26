@@ -13,9 +13,21 @@
       #mazeGame {
         background-color: black;
       }
+      .players {
+        z-index: 5;
+        position: absolute;
+        right: 0;
+        text-align: right;
+        font-size: 1.5em;
+        margin: 30px;
+        background-color: #FFFFFF;
+        border: 1px solid black;
+        opacity: 0.6;
+      }
     </style>
   </head>
   <body>
+    <span id="players" class="players"></span>
     <canvas id='mazeGame' width='300' height='300'></canvas>
   </body>
 </html>

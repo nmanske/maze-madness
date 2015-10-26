@@ -1,5 +1,9 @@
 window.addEventListener("load",function() {
 
+  var players = [];
+  var socket = io.connect('http://localhost:8080');
+  var UiPlayers = document.getElementById("players");
+
   // INITIALIZE NEW GAME
   var Q = window.Q = Quintus({ development: true })
       .include("Sprites, Scenes, Input, 2D, Touch, UI")
@@ -10,15 +14,15 @@ window.addEventListener("load",function() {
   Q.gravityX = 0;
   Q.gravityY = 0;
 
+
+
   // PLAYER CLASS
   Q.Sprite.extend("Player", {
 
     init: function(p) {
 
       this._super(p, {
-        sheet: "player",
-        x: 688,
-        y: 976
+        sheet: "player"
       });
 
       this.add('2d, stepControls');
@@ -29,6 +33,27 @@ window.addEventListener("load",function() {
           this.destroy(); //remove player to prevent from moving
         }
       });
+
+    },
+
+    step: function (dt) {
+      this.p.socket.emit('update', { playerId: this.p.playerId, x: this.p.x, y: this.p.y, sheet: this.p.sheet })
+    }
+  });
+
+  Q.Sprite.extend('Actor', {
+    init: function (p) {
+      this._super(p, {
+        update: true
+      });
+
+      var temp = this;
+      setInterval(function () {
+        if (!temp.p.update) {
+          temp.destroy();
+        }
+        temp.p.update = false;
+      }, 3000);
     }
   });
 
@@ -39,13 +64,44 @@ window.addEventListener("load",function() {
     }
   });
 
+  // MULTIPLAYER SOCKET
+  function setUp (stage) {
+    socket.on('count', function (data) {
+      UiPlayers.innerHTML = 'Players: ' + data['playerCount'];
+    });
+
+    socket.on('connected', function (data) {
+      selfId = data['playerId'];
+      player = new Q.Player({ playerId: selfId, x: 688, y: 976, socket: socket });
+      stage.insert(player);
+      stage.add('viewport').follow(player);
+    });
+
+    socket.on('updated', function (data) {
+      var actor = players.filter(function (obj) {
+          return obj.playerId == data['playerId'];
+        })[0];
+      if (actor) {
+        actor.player.p.x = data['x'];
+        actor.player.p.y = data['y'];
+        actor.player.p.sheet = data['sheet'];
+        actor.player.p.update = true;
+      }
+      else {
+        var temp = new Q.Actor({ playerId: data['playerId'], x: data['x'], y: data['y'], sheet: data['sheet'] });
+        players.push({ player: temp, playerId: data['playerId'] });
+        stage.insert(temp);
+      }
+    });
+    
+  }
+
   // LEVEL 1 SCENE
-  Q.scene("level1",function(stage) {
+  Q.scene("level1", function (stage) {
 
     stage.collisionLayer(new Q.TileLayer({dataAsset: '/maps/maze.json', sheet: 'tiles' }));
-    var player = stage.insert(new Q.Player());
-    stage.add("viewport").follow(player);
     stage.insert(new Q.Ladder({ x: 688, y: 336 }));
+    setUp(stage);
 
   });
 
@@ -77,7 +133,6 @@ window.addEventListener("load",function() {
 
       Q.sheet("tiles","/images/tiles.png", { tilew: 32, tileh: 32 });
       Q.compileSheets("/images/sprites.png","/images/sprites.json");
-
       Q.stageScene("level1"); // run the game
 
   });
