@@ -1,7 +1,7 @@
 window.addEventListener("load",function() {
-  var Q = window.Q = Quintus()
+  var Q = window.Q = Quintus({ development: true })
       .include("Sprites, Scenes, Input, 2D, Touch, UI")
-      .setup("mazeGame")
+      .setup("mazeGame", {maximize: true})
       .controls()
       .touch();
 
@@ -16,8 +16,8 @@ window.addEventListener("load",function() {
           // call parent constructor
           this._super(p, {
             sheet: "player",  // set sprite width and height
-            x: 410,
-            y: 90
+            x: 688,
+            y: 976
           });
 
           // adds four way controls onto a sprite
@@ -27,7 +27,7 @@ window.addEventListener("load",function() {
           // hit.sprite is called everytime the player collides with a sprite
           this.on("hit.sprite",function(collision) {
             // Check the collision, if it's the Tower, you win!
-            if(collision.obj.isA("Tower")) {
+            if(collision.obj.isA("Gold")) {
               // Stage the endGame scene above the current stage
               Q.stageScene("endGame",1, { label: "You Won!" });
               // Remove the player to prevent them from moving
@@ -38,9 +38,9 @@ window.addEventListener("load",function() {
       });
 
       // Sprites can be simple, the Tower sprite just sets a custom sprite sheet
-      Q.Sprite.extend("Tower", {
+      Q.Sprite.extend("Gold", {
         init: function(p) {
-          this._super(p, { sheet: 'tower' });
+          this._super(p, { sheet: 'gold' });
         }
       });
 
@@ -78,7 +78,7 @@ Q.scene("level1",function(stage) {
 
   // Add in a tile layer, and make it the collision layer
   stage.collisionLayer(new Q.TileLayer({
-                             dataAsset: '/maps/arena.json',
+                             dataAsset: '/maps/maze.json',
                              sheet:     'tiles' }));
 
   // Create the player and add him to the stage
@@ -93,7 +93,7 @@ Q.scene("level1",function(stage) {
   stage.insert(new Q.Enemy({ x: 800, y: 0 }));
 
   // Finally add in the tower goal
-  stage.insert(new Q.Tower({ x: 180, y: 50 }));
+  stage.insert(new Q.Gold({ x: 688, y: 336 }));
 });
 
 // To display a game over / game won popup box,
@@ -121,7 +121,7 @@ Q.scene('endGame',function(stage) {
 
 // Q.load can be called at any time to load additional assets
 // assets that are already loaded will be skipped
-Q.load("/images/sprites.png, /images/sprites.json, /maps/arena.json, /images/tiles.png",
+Q.load("/images/sprites.png, /images/sprites.json, /maps/maze.json, /images/tiles.png",
   // The callback will be triggered when everything is loaded
   function() {
     // Sprites sheets can be created manually
