@@ -395,9 +395,9 @@ Quintus.UI = function(Q) {
     setFont: function(ctx) {
       ctx.textBaseline = "top";
       ctx.font= this.font();
-      ctx.fillStyle = this.p.color || "black";
+      ctx.fillStyle = this.p.color || "white";
       ctx.textAlign = this.p.align || "left";
-      ctx.strokeStyle = this.p.outlineColor || "black";
+      ctx.strokeStyle = this.p.outlineColor || "white";
       ctx.lineWidth = this.p.outlineWidth || 0;
     },
 
@@ -664,5 +664,3 @@ if(typeof Quintus === 'undefined') {
 } else {
   quintusUI(Quintus);
 }
-
-
