@@ -22,6 +22,22 @@ window.addEventListener("load", function() {
   Q.gravityX = 0;
   Q.gravityY = 0;
 
+  // COLLISION MASKS
+  var SPRITE_PLAYER = 1;
+  var SPRITE_ACTOR = 2;
+  var SPRITE_TILES = 4;
+  var SPRITE_ENEMY = 8;
+
+  // SPAWN POINTS
+  var PLAYER_SPAWN_X = 688;
+  var PLAYER_SPAWN_Y = 976;
+  var LADDER_SPAWN_X = 688;
+  var LADDER_SPAWN_Y = 800;
+
+  // MISC
+  var isRestartGame;
+  var selfId_restart;
+
   /***************************************************************************/
   /*                            GAME CLASSES                                 */
   /***************************************************************************/
@@ -31,14 +47,17 @@ window.addEventListener("load", function() {
 
     init: function(p) {
       this._super(p, {
+        type: SPRITE_PLAYER,
+        collisionMask: SPRITE_ENEMY | SPRITE_TILES,
         sheet: "player"
       });
       this.add("2d, stepControls");
       this.on("hit.sprite", function(collision) {
         if(collision.obj.isA("Ladder")) {
-          this.p.destroy();
           Q.clearStages();
-          Q.stageScene("level2", 1, { label: "Proceed to Level 2" });
+          Q.stageScene("endGame", 1, { label: "You Won!" });
+          //this.p.x = PLAYER_SPAWN_X;
+          //this.p.y = PLAYER_SPAWN_Y;
         }
       });
     },
@@ -54,6 +73,8 @@ window.addEventListener("load", function() {
     init: function (p) {
       this._super(p, {
         sheet: "actor",
+        type: SPRITE_ACTOR,
+        collisionMask: SPRITE_TILES | SPRITE_ENEMY,
         update: true
       });
 
@@ -86,12 +107,18 @@ window.addEventListener("load", function() {
 
     socket.on("connected", function (data) {
       selfId = data["playerId"];
-      player = new Q.Player({ playerId: selfId, x: 688, y: 976, socket: socket });
+      selfId_restart = selfId;
+      player = new Q.Player({ playerId: selfId, x: PLAYER_SPAWN_X, y: PLAYER_SPAWN_Y, socket: socket });
       stage.insert(player);
       stage.add("viewport").follow(player);
     });
 
-
+    if (Boolean(isRestartGame)) {
+      player = new Q.Player({ playerId: selfId_restart, x: PLAYER_SPAWN_X, y: PLAYER_SPAWN_Y, socket: socket });
+      stage.insert(player);
+      stage.add("viewport").follow(player);
+      isRestartGame = 0;
+    }
 
     socket.on("updated", function (data) {
       var actor = players.filter(function (obj) {
@@ -119,18 +146,9 @@ window.addEventListener("load", function() {
   // LEVEL 1 SCENE
   Q.scene("level1", function (stage) {
 
-    stage.collisionLayer(new Q.TileLayer({dataAsset: "/maps/maze1.json", sheet: "tiles" }));
-    stage.insert(new Q.Ladder({ x: 688, y: 800 }));
-    setUp(stage);
-
-  });
-
-  // LEVEL 2 SCENE
-  Q.scene("level2", function (stage) {
-
-    //var player = stage.insert(new Q.Player());
-    stage.collisionLayer(new Q.TileLayer({dataAsset: "/maps/maze2.json", sheet: "tiles" }));
-    stage.insert(new Q.Ladder({ x: 688, y: 800 }));
+    stage.collisionLayer(new Q.TileLayer({dataAsset: "/maps/maze1.json",
+        type: SPRITE_TILES, collisionMask: SPRITE_PLAYER | SPRITE_ACTOR | SPRITE_ENEMY, sheet: "tiles" }));
+    stage.insert(new Q.Ladder({ x: LADDER_SPAWN_X, y: LADDER_SPAWN_Y }));
     setUp(stage);
 
   });
@@ -149,7 +167,8 @@ window.addEventListener("load", function() {
       x:10, y: -10 - button.p.h, label: stage.options.label }));
 
     button.on("click",function() {
-      Q.clearStages();
+      Q.clearStage(1);
+      isRestartGame = 1;
       Q.stageScene("level1");
     });
 
