@@ -61,45 +61,46 @@ window.addEventListener("load", function() {
     },
 
     sprintNow: function() {
-      if(this.p.speed == PLAYER_WALK_SPEED) {this.p.speed = PLAYER_SPRINT_SPEED;}
+      if (this.p.speed == PLAYER_WALK_SPEED) {this.p.speed = PLAYER_SPRINT_SPEED;}
       else {this.p.speed = PLAYER_WALK_SPEED;}
     },
 
     teleportNow: function() {
-      /*if (isTeleportEnabled != 1) {
-        isTeleportEnabled = 1;
-        this.p.type = SPRITE_TELEPORT;
-        this.p.stepDistance = 64;
-      }
-      else {
-        isTeleportEnabled = 0;
-        this.p.type = SPRITE_PLAYER;
-        this.p.stepDistance = 32;
-      }*/
+      if (Q.inputs['right'] && Q.inputs['up']) {this.p.x += 32; this.p.y -= 32;}
+      else if (Q.inputs['right'] && Q.inputs['down']) {this.p.x += 32; this.p.y += 32;}
+      else if (Q.inputs['left'] && Q.inputs['down']) {this.p.x -= 32; this.p.y += 32;}
+      else if (Q.inputs['left'] && Q.inputs['up']) {this.p.x -= 32; this.p.y -= 32;}
+      else if(Q.inputs['right']) {this.p.x += 32;}
+      else if (Q.inputs['down']) {this.p.y += 32;}
+      else if (Q.inputs['left']) {this.p.x -= 32;}
+      else if(Q.inputs['up']) {this.p.y -= 32;}
     },
 
     step: function (dt) {
+
+      // Add up and down movement to platformer controls
       if (Q.inputs['up']) {
-        if(this.p.speed == PLAYER_SPRINT_SPEED) {this.p.vy = -PLAYER_SPRINT_SPEED;}
+        if (this.p.speed == PLAYER_SPRINT_SPEED) {this.p.vy = -PLAYER_SPRINT_SPEED;}
         else {this.p.vy = -PLAYER_WALK_SPEED;}
-      } else if (Q.inputs['down']) {
+      }
+      else if (Q.inputs['down']) {
         if(this.p.speed == PLAYER_SPRINT_SPEED) {this.p.vy = PLAYER_SPRINT_SPEED;}
         else {this.p.vy = PLAYER_WALK_SPEED;}
-      } else if (!Q.inputs['down'] && !Q.inputs['up']) {
-        this.p.vy = 0;
       }
+      else if (!Q.inputs['down'] && !Q.inputs['up']) {this.p.vy = 0;}
 
-      if(this.p.vx > 0) {
-        this.p.angle = 90;
-      } else if(this.p.vx < 0) {
-        this.p.angle = -90;
-      } else if(this.p.vy > 0) {
-        this.p.angle = 180;
-      } else if(this.p.vy < 0) {
-        this.p.angle = 0;
-      }
+      // Change direction of player sprite based on movement direction
+      if (this.p.vx > 0 && this.p.vy < 0) {this.p.angle = 45;}
+      else if (this.p.vx > 0 && this.p.vy > 0) {this.p.angle = 135;}
+      else if (this.p.vx < 0 && this.p.vy > 0) {this.p.angle = 225;}
+      else if (this.p.vx < 0 && this.p.vy < 0) {this.p.angle = 315;}
+      else if(this.p.vx > 0) {this.p.angle = 90;}
+      else if (this.p.vy > 0) {this.p.angle = 180;}
+      else if (this.p.vx < 0) {this.p.angle = 270;}
+      else if(this.p.vy < 0) {this.p.angle = 0;}
 
-      this.p.socket.emit("update", { playerId: this.p.playerId, x: this.p.x, y: this.p.y, sheet: this.p.sheet })
+      this.p.socket.emit("update", { playerId: this.p.playerId, x: this.p.x, y: this.p.y,
+                        sheet: this.p.sheet, angle: this.p.angle })
     }
 
   });
@@ -155,6 +156,7 @@ window.addEventListener("load", function() {
       if (actor) {
         actor.player.p.x = data["x"];
         actor.player.p.y = data["y"];
+        actor.player.p.angle = data["angle"];
         actor.player.p.sheet = "actor";
         actor.player.p.update = true;
       }
