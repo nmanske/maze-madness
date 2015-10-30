@@ -7,14 +7,6 @@ window.addEventListener("load", function() {
       .controls()
       .touch();
 
-  // LOAD GAME ASSETS
-  Q.load("/images/sprites.png, /images/sprites.json, /maps/maze1.json, /maps/maze2.json, /images/tiles.png",
-    function() {
-      Q.sheet("tiles", "/images/tiles.png", { tilew: 32, tileh: 32 });
-      Q.compileSheets("/images/sprites.png", "/images/sprites.json");
-      Q.stageScene("level1"); // run the game
-  });
-
   var players = [];
   var socket = io.connect('http://localhost:8080');
   var UiPlayers = document.getElementById("players");
@@ -26,13 +18,22 @@ window.addEventListener("load", function() {
   var SPRITE_PLAYER = 1;
   var SPRITE_ACTOR = 2;
   var SPRITE_TILES = 4;
-  var SPRITE_ENEMY = 8;
+  var SPRITE_LADDER = 8;
+  var SPRITE_ENEMY = 16;
 
   // SPAWN POINTS
   var PLAYER_SPAWN_X = 688;
   var PLAYER_SPAWN_Y = 976;
   var LADDER_SPAWN_X = 688;
   var LADDER_SPAWN_Y = 800;
+
+  // MOVEMENT
+
+  var PLAYER_WALK_SPEED = 200;
+  var PLAYER_SPRINT_SPEED = 300;
+
+  // OTHER
+  var isTeleportEnabled;
 
   /***************************************************************************/
   /*                            GAME CLASSES                                 */
@@ -44,21 +45,60 @@ window.addEventListener("load", function() {
     init: function(p) {
       this._super(p, {
         type: SPRITE_PLAYER,
-        collisionMask: SPRITE_ENEMY | SPRITE_TILES,
+        collisionMask: SPRITE_ENEMY | SPRITE_TILES | SPRITE_LADDER,
         sheet: "player"
       });
-      this.add("2d, stepControls");
+      this.add("2d, platformerControls");
       this.on("hit.sprite", function(collision) {
         if(collision.obj.isA("Ladder")) {
-          //Q.clearStages();
           Q.stageScene("endGame", 1, { label: "You Won!" });
           this.p.x = PLAYER_SPAWN_X;
           this.p.y = PLAYER_SPAWN_Y;
         }
       });
+      Q.input.on("sprint", this, "sprintNow");
+      Q.input.on("teleport", this, "teleportNow");
+    },
+
+    sprintNow: function() {
+      if(this.p.speed == PLAYER_WALK_SPEED) {this.p.speed = PLAYER_SPRINT_SPEED;}
+      else {this.p.speed = PLAYER_WALK_SPEED;}
+    },
+
+    teleportNow: function() {
+      /*if (isTeleportEnabled != 1) {
+        isTeleportEnabled = 1;
+        this.p.type = SPRITE_TELEPORT;
+        this.p.stepDistance = 64;
+      }
+      else {
+        isTeleportEnabled = 0;
+        this.p.type = SPRITE_PLAYER;
+        this.p.stepDistance = 32;
+      }*/
     },
 
     step: function (dt) {
+      if (Q.inputs['up']) {
+        if(this.p.speed == PLAYER_SPRINT_SPEED) {this.p.vy = -PLAYER_SPRINT_SPEED;}
+        else {this.p.vy = -PLAYER_WALK_SPEED;}
+      } else if (Q.inputs['down']) {
+        if(this.p.speed == PLAYER_SPRINT_SPEED) {this.p.vy = PLAYER_SPRINT_SPEED;}
+        else {this.p.vy = PLAYER_WALK_SPEED;}
+      } else if (!Q.inputs['down'] && !Q.inputs['up']) {
+        this.p.vy = 0;
+      }
+
+      if(this.p.vx > 0) {
+        this.p.angle = 90;
+      } else if(this.p.vx < 0) {
+        this.p.angle = -90;
+      } else if(this.p.vy > 0) {
+        this.p.angle = 180;
+      } else if(this.p.vy < 0) {
+        this.p.angle = 0;
+      }
+
       this.p.socket.emit("update", { playerId: this.p.playerId, x: this.p.x, y: this.p.y, sheet: this.p.sheet })
     }
 
@@ -136,7 +176,7 @@ window.addEventListener("load", function() {
 
     stage.collisionLayer(new Q.TileLayer({dataAsset: "/maps/maze1.json",
         type: SPRITE_TILES, collisionMask: SPRITE_PLAYER | SPRITE_ACTOR | SPRITE_ENEMY, sheet: "tiles" }));
-    stage.insert(new Q.Ladder({ x: LADDER_SPAWN_X, y: LADDER_SPAWN_Y }));
+    stage.insert(new Q.Ladder({type: SPRITE_LADDER, x: LADDER_SPAWN_X, y: LADDER_SPAWN_Y }));
     setUp(stage);
 
   });
@@ -160,6 +200,14 @@ window.addEventListener("load", function() {
 
     container.fit(1000);
 
+  });
+
+  // LOAD GAME ASSETS
+  Q.load("/images/sprites.png, /images/sprites.json, /maps/maze1.json, /maps/maze2.json, /images/tiles.png",
+    function() {
+      Q.sheet("tiles", "/images/tiles.png", { tilew: 32, tileh: 32 });
+      Q.compileSheets("/images/sprites.png", "/images/sprites.json");
+      Q.stageScene("level1"); // run the game
   });
 
 });
