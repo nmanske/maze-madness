@@ -17,7 +17,7 @@ io.on("connection", function (socket) {
   id++;
 
   setTimeout(function () {
-    socket.emit("connected", { playerId: id });
+    socket.emit("connected_game", { playerId: id });
     io.emit("count", { playerCount: playerCount });
   }, 1500);
 

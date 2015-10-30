@@ -34,10 +34,6 @@ window.addEventListener("load", function() {
   var LADDER_SPAWN_X = 688;
   var LADDER_SPAWN_Y = 800;
 
-  // MISC
-  var isRestartGame;
-  var selfId_restart;
-
   /***************************************************************************/
   /*                            GAME CLASSES                                 */
   /***************************************************************************/
@@ -54,10 +50,10 @@ window.addEventListener("load", function() {
       this.add("2d, stepControls");
       this.on("hit.sprite", function(collision) {
         if(collision.obj.isA("Ladder")) {
-          Q.clearStages();
+          //Q.clearStages();
           Q.stageScene("endGame", 1, { label: "You Won!" });
-          //this.p.x = PLAYER_SPAWN_X;
-          //this.p.y = PLAYER_SPAWN_Y;
+          this.p.x = PLAYER_SPAWN_X;
+          this.p.y = PLAYER_SPAWN_Y;
         }
       });
     },
@@ -105,20 +101,12 @@ window.addEventListener("load", function() {
       UiPlayers.innerHTML = "Players: " + data["playerCount"];
     });
 
-    socket.on("connected", function (data) {
+    socket.on("connected_game", function (data) {
       selfId = data["playerId"];
-      selfId_restart = selfId;
       player = new Q.Player({ playerId: selfId, x: PLAYER_SPAWN_X, y: PLAYER_SPAWN_Y, socket: socket });
       stage.insert(player);
       stage.add("viewport").follow(player);
     });
-
-    if (Boolean(isRestartGame)) {
-      player = new Q.Player({ playerId: selfId_restart, x: PLAYER_SPAWN_X, y: PLAYER_SPAWN_Y, socket: socket });
-      stage.insert(player);
-      stage.add("viewport").follow(player);
-      isRestartGame = 0;
-    }
 
     socket.on("updated", function (data) {
       var actor = players.filter(function (obj) {
@@ -157,7 +145,7 @@ window.addEventListener("load", function() {
   Q.scene("endGame",function(stage) {
 
     var container = stage.insert(new Q.UI.Container({
-      x: Q.width/2, y: Q.height/2, fill: "rgba(0,0,0,0.5)"
+      x: Q.width/2, y: Q.height/2, fill: "rgba(0,0,0,1)"
     }));
 
     var button = container.insert(new Q.UI.Button({
@@ -168,11 +156,9 @@ window.addEventListener("load", function() {
 
     button.on("click",function() {
       Q.clearStage(1);
-      isRestartGame = 1;
-      Q.stageScene("level1");
     });
 
-    container.fit(20);
+    container.fit(1000);
 
   });
 
