@@ -10,7 +10,7 @@ concerns itself with game-type (pretty anything besides touchscreen input)
 */
 
 
-var quintusInput = function(Quintus) { 
+var quintusInput = function(Quintus) {
 "use strict";
 
 /**
@@ -63,8 +63,9 @@ Quintus.Input = function(Q) {
     LEFT: 'left', RIGHT: 'right',
     UP: 'up',     DOWN: 'down',
     SPACE: 'fire',
+    SHIFT: 'sprint',
     Z: 'fire',
-    X: 'action',
+    X: 'teleport',
     ENTER: 'confirm',
     ESC: 'esc',
     P: 'P',
