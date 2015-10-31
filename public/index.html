@@ -8,7 +8,6 @@
     <script src='/lib/quintus_touch.js'></script>
     <script src='/lib/quintus_ui.js'></script>
     <script src='/socket.io/socket.io.js'></script>
-    <script src='/src/game.js'></script>
     <style>
       #mazeGame {
         background-color: black;
@@ -27,6 +26,8 @@
     </style>
   </head>
   <body>
+    <script src="/lib/require.min.js"></script>
+    <script src='/src/game.js'></script>
     <span id="players" class="players"></span>
     <canvas id='mazeGame' width='800' height='600'></canvas>
   </body>
