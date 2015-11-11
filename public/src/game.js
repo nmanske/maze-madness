@@ -7,7 +7,7 @@ window.addEventListener("load", function() {
       .controls()
       .touch();
 
-  var socket = io.connect('http://localhost:8080');
+  var socket = io.connect('http://52.34.113.100:8080');
 
   Q.gravityX = 0;
   Q.gravityY = 0;

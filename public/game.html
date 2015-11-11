@@ -1,0 +1,112 @@
+<html>
+  <head>
+    <script src='/lib/quintus.js'></script>
+    <script src='/lib/quintus_sprites.js'></script>
+    <script src='/lib/quintus_scenes.js'></script>
+    <script src='/lib/quintus_input.js'></script>
+    <script src='/lib/quintus_2d.js'></script>
+    <script src='/lib/quintus_touch.js'></script>
+    <script src='/lib/quintus_ui.js'></script>
+    <script src='/socket.io/socket.io.js'></script>
+    <script src='/src/game.js'></script>
+    <style>
+        
+    
+      #chat
+      {
+            
+            height:560px;
+      }
+
+      #contentWrap
+      {
+        display: none;
+      }
+
+      #chatWrap
+      {
+        
+        border: 5px #008000 inset;
+      }
+        
+      #mazeGame {
+
+        background-color: black;
+      }
+    </style>
+
+
+  </head>
+  <body>
+      <table>
+          <tr>
+            <td>
+
+              <div id="nickWrap">
+                  <p>Enter a username:</p>
+                  <p id="nickError"></p>
+                  <form id="setNick">
+                    <input size="35" id="nickname"></input>
+                    <input type="submit"></input>
+                  </form>
+                </div>
+
+                <div id="contentWrap">
+                  <div id="chatWrap" >
+                    <div id="chat"></div>
+                  </div>
+                  <p>
+                    <form id="send-message">
+                      <input size="35" id="message"></input>
+                      <input type="submit"></input>
+                    </form>
+                  </div>
+                  <div id="users"></div>
+                </div>
+                
+                <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+                <script src="/socket.io/socket.io.js"></script>
+                <script>
+                  jQuery(function($){
+                    var socket = io.connect();
+                    var $nickForm = $('#setNick');
+                    var $nickError = $('#nickError');
+                    var $nickBox = $('#nickname');
+                    var $users = $('#users');
+                    var $messageForm = $('#send-message');
+                    var $messageBox = $('#message');
+                    var $chat = $('#chat');
+                    
+                    $nickForm.submit(function(e){
+                      e.preventDefault();
+                      socket.emit('new user', $nickBox.val(), function(data){
+                        if(data){
+                          $('#nickWrap').hide();
+                          $('#contentWrap').show();
+                        } else{
+                          $nickError.html('That username is already taken!  Try again.');
+                        }
+                      });
+                      $nickBox.val('');
+                    });
+
+                    
+                    $messageForm.submit(function(e){
+                      e.preventDefault();
+                      socket.emit('send message', $messageBox.val());
+                      $messageBox.val('');
+                    });
+                    
+                    socket.on('new message', function(data)
+                    {
+                      $chat.append('<b>' + data.nick + ': </b>' + data.msg + "<br/>");
+                    });
+                  });
+                </script></td>
+          
+            <td><canvas id='mazeGame' width='600' height='600'></canvas></td>
+          </tr>
+      </table>
+    
+  </body>
+</html>
