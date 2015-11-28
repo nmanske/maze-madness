@@ -1,1 +1,1 @@
-#repo http://github.com/evannara/maze-madness
+#repo evannara/maze-madness
