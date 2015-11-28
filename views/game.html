@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <!-- Stylesheet -->
+    <link href="/static/styles/game.css" rel="stylesheet">
+    <!-- Quintus lib -->
     <script src="/node_modules/Quintus/lib/quintus.js"></script>
     <script src="/node_modules/Quintus/lib/quintus_sprites.js"></script>
     <script src="/node_modules/Quintus/lib/quintus_scenes.js"></script>
@@ -8,13 +11,10 @@
     <script src="/node_modules/Quintus/lib/quintus_2d.js"></script>
     <script src="/node_modules/Quintus/lib/quintus_touch.js"></script>
     <script src="/node_modules/Quintus/lib/quintus_ui.js"></script>
+    <!-- Socket.io -->
     <script src="/static/js/socket.io.js"></script>
+    <!-- Game -->
     <script src="/static/js/game.js"></script>
-    <style>
-      #mazeGame {
-        background-color: black;
-      }
-    </style>
   </head>
   <body>
     <canvas height="600" id="mazeGame" width="600"></canvas>

@@ -7,7 +7,7 @@ app.use("/static", express.static(__dirname + '/static'))
 app.use("/node_modules", express.static(__dirname + '/node_modules'))
 
 app.get("/", function(req, res) {
-  res.sendFile(__dirname + "/views/index.html")
+  res.sendFile(__dirname + "/views/splashpage.html")
 })
 
 app.get("/game", function(req, res) {
