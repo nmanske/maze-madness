@@ -34,6 +34,7 @@
   "dependencies": {
     "Quintus": "git+https://github.com/cykod/Quintus.git",
     "agency": "git+https://github.com/IronSummitMedia/startbootstrap-agency.git",
+    "animated-header": "git+https://github.com/alexgleason/AnimatedHeader.git",
     "classie": "^1.0.0",
     "express": "4.13.3",
     "font-awesome": "^4.4.0",
