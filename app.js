@@ -37,9 +37,14 @@ io.on("connection", function(socket) {
     })
   })
 
-  socket.on("update", function(data) {
-    socket.broadcast.emit("updated", data)
+  socket.on("updatePlayer", function(data) {
+    socket.broadcast.emit("updatedActor", data)
   })
+
+  socket.on("updateScore", function(data) {
+    socket.broadcast.emit("updatedScore", data)
+  })
+
 })
 
 server.listen(8080)

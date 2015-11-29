@@ -1,9 +1,9 @@
 {
   "player":{"sx":0,"sy":0,"cols":1,"tilew":30,"tileh":30,"frames":1},
   "actor":{"sx":0,"sy":30,"cols":1,"tilew":30,"tileh":30,"frames":1},
-  "speed_vial":{"sx":5,"sy":60,"cols":1,"tilew":20,"tileh":30,"frames":1},
-  "invisibility_vial":{"sx":5,"sy":90,"cols":1,"tilew":20,"tileh":30,"frames":1},
+  "unused_vial":{"sx":5,"sy":60,"cols":1,"tilew":20,"tileh":30,"frames":1},
+  "warp_vial":{"sx":5,"sy":90,"cols":1,"tilew":20,"tileh":30,"frames":1},
   "empty_vial":{"sx":5,"sy":120,"cols":1,"tilew":20,"tileh":30,"frames":1},
-  "enemy":{"sx":0,"sy":150,"cols":1,"tilew":30,"tileh":24,"frames":1},
+  "boost_pad":{"sx":3,"sy":150,"cols":1,"tilew":24,"tileh":24,"frames":1},
   "ladder":{"sx":0,"sy":174,"cols":1,"tilew":30,"tileh":30,"frames":1}
 }
