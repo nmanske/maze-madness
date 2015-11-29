@@ -14,6 +14,7 @@ app.get("/game", function(req, res) {
   res.sendFile(__dirname + "/views/game.html")
 })
 
+var scoreboard = []
 var playerCount = 0
 var id = 0
 
@@ -21,14 +22,14 @@ io.on("connection", function(socket) {
   playerCount++
   id++
 
-  setTimeout(function() {
-    socket.emit("connected_game", {
+  setTimeout(function startGame() {
+    socket.emit("connectedGame", {
       playerId: id
     })
     io.emit("count", {
       playerCount: playerCount
     })
-  }, 1500)
+  }, 1750)
 
   socket.on("disconnect", function() {
     playerCount--
@@ -41,9 +42,18 @@ io.on("connection", function(socket) {
     socket.broadcast.emit("updatedActor", data)
   })
 
-  socket.on("updateScore", function(data) {
-    socket.broadcast.emit("updatedScore", data)
+  socket.on("pushScore", function(data) {
+    scoreboard.push({playerID: data["playerID"], score: data["score"]})
+    if (scoreboard.length == 22) {
+      scoreboard.splice(1, 1)
+    }
   })
+
+  setInterval(function updatedScoreboard() {
+    io.emit("updatedScoreboard", {
+      scoreboard: scoreboard
+    })
+  }, 1750)
 
 })
 

@@ -1,22 +1,26 @@
 window.addEventListener("load", function() {
 
   // INITIALIZE NEW GAME
-  var Q = window.Q = Quintus({ development: true })
-      .include("Sprites, Scenes, Input, 2D, Touch, UI")
-      .setup("mazeGame")
-      .controls()
-      .touch();
+  var Q = window.Q = Quintus({
+      development: true
+    })
+    .include("Sprites, Scenes, Input, 2D, Touch, UI")
+    .setup("mazeGame", {maximize: true})
+    .controls()
+    .touch();
 
   Q.input.keyboardControls({
     X: "warp"
   });
 
   Q.input.touchControls({
-    controls:  [ ['left','<' ],
-                 ['up','^' ],
-                 ['down','v'],
-                 ['right','>'],
-                 ['warp','t' ]]
+    controls: [
+      ['left', '<'],
+      ['up', '^'],
+      ['down', 'v'],
+      ['right', '>'],
+      ['warp', 't']
+    ]
   });
 
   var socket = io.connect('http://localhost:8080');
@@ -45,19 +49,25 @@ window.addEventListener("load", function() {
   // ITEMS
   var vials = [];
 
-  // OTHER
+  // UI
   var players = [];
   var UiPlayers = document.getElementById("players");
+  var scoreboard = [];
+  var UiScoreboard = document.getElementById("scoreboard");
+  var highscore = "NONE!";
+  var UiHighscore = document.getElementById("highscore");
   var id = "";
   var UiID = document.getElementById("id");
   var runtime = 0;
   var UiRuntime = document.getElementById("runtime");
-  var scoreboard = [];
-  var UiScoreboard = document.getElementById("scoreboard");
   var boostTime = 0;
   var UiBoostTime = document.getElementById("boostTime");
   var warpUses = 0;
   var UiWarpUses = document.getElementById("warpUses");
+
+  // MISC
+  var thisPlayer;
+  var activeGame = true;
 
   /***************************************************************************/
   /*                            GAME CLASSES                                 */
@@ -70,30 +80,27 @@ window.addEventListener("load", function() {
       this._super(p, {
         sheet: "player",
         type: SPRITE_PLAYER,
-        collisionMask:  SPRITE_TILES | SPRITE_LADDER | SPRITE_BOOST | SPRITE_WARP,
-        highscore: "N/A"
+        collisionMask: SPRITE_TILES | SPRITE_LADDER | SPRITE_BOOST | SPRITE_WARP,
+        lastscore: "N/A"
       });
       this.add("2d, platformerControls");
       this.on("hit.sprite", function(collision) {
         if (collision.obj.isA("Ladder")) {
-          Q.stageScene("endGame", 1, { label: "You Conquered The Maze In " + runtime + " seconds!" });
-          this.p.highscore = runtime;
-          var newScore = "Player " + this.p.playerId + ": " + this.p.highscore + " seconds";
-          scoreboard.push( newScore );
-          var fullScoreboard = "Scoreboard:<br>";
-          for (i = 0; i < scoreboard.length; i++) {
-            fullScoreboard += scoreboard[i] + "<br>";
-          }
-          UiScoreboard.innerHTML = fullScoreboard;
-          this.p.socket.emit("updateScore", { scoreEntry: newScore });
+          Q.stageScene("endGame", 1, {
+            label: "You Conquered The Maze In " + secondsToTime(runtime) + " !"
+          });
+          this.p.lastscore = runtime;
+          this.p.socket.emit("pushScore", {
+            playerID: this.p.playerId,
+            score: this.p.lastscore
+          });
           this.p.x = PLAYER_SPAWN_X;
           this.p.y = PLAYER_SPAWN_Y;
           runtime = 0;
           boostTime = 0;
           warpUses = 0;
-        }
-        else if (collision.obj.isA("BoostPad")) {
-          this.p.speed = PLAYER_SPRINT_SPEED;
+          activeGame = false;
+        } else if (collision.obj.isA("BoostPad")) {
           boostTime = 8;
         }
       });
@@ -104,47 +111,86 @@ window.addEventListener("load", function() {
     warpPlayer: function() {
       if (warpUses > 0) {
         warpUses--;
-        if (Q.inputs['right'] && Q.inputs['up']) {this.p.x += 32; this.p.y -= 32;}
-        else if (Q.inputs['right'] && Q.inputs['down']) {this.p.x += 32; this.p.y += 32;}
-        else if (Q.inputs['left'] && Q.inputs['down']) {this.p.x -= 32; this.p.y += 32;}
-        else if (Q.inputs['left'] && Q.inputs['up']) {this.p.x -= 32; this.p.y -= 32;}
-        else if(Q.inputs['right']) {this.p.x += 32;}
-        else if (Q.inputs['down']) {this.p.y += 32;}
-        else if (Q.inputs['left']) {this.p.x -= 32;}
-        else if(Q.inputs['up']) {this.p.y -= 32;}
+        if (Q.inputs['right'] && Q.inputs['up']) {
+          this.p.x += 32;
+          this.p.y -= 32;
+        } else if (Q.inputs['right'] && Q.inputs['down']) {
+          this.p.x += 32;
+          this.p.y += 32;
+        } else if (Q.inputs['left'] && Q.inputs['down']) {
+          this.p.x -= 32;
+          this.p.y += 32;
+        } else if (Q.inputs['left'] && Q.inputs['up']) {
+          this.p.x -= 32;
+          this.p.y -= 32;
+        } else if (Q.inputs['right']) {
+          this.p.x += 32;
+        } else if (Q.inputs['down']) {
+          this.p.y += 32;
+        } else if (Q.inputs['left']) {
+          this.p.x -= 32;
+        } else if (Q.inputs['up']) {
+          this.p.y -= 32;
+        }
       }
     },
 
     // Step is called whenever an arrow key is pressed
-    step: function (dt) {
+    step: function(dt) {
 
-      if (boostTime == 0) {
-        this.p.speed = PLAYER_WALK_SPEED;
+      if (activeGame == false) {
+        this.p.speed = 0;
+      } else {
+        if (boostTime == 0) {
+          this.p.speed = PLAYER_WALK_SPEED;
+        } else {
+          this.p.speed = PLAYER_SPRINT_SPEED;
+        }
+
+        // Add up and down movement to platformer controls
+        if (Q.inputs['up']) {
+          if (this.p.speed == PLAYER_SPRINT_SPEED) {
+            this.p.vy = -PLAYER_SPRINT_SPEED;
+          } else {
+            this.p.vy = -PLAYER_WALK_SPEED;
+          }
+        } else if (Q.inputs['down']) {
+          if (this.p.speed == PLAYER_SPRINT_SPEED) {
+            this.p.vy = PLAYER_SPRINT_SPEED;
+          } else {
+            this.p.vy = PLAYER_WALK_SPEED;
+          }
+        } else if (!Q.inputs['down'] && !Q.inputs['up']) {
+          this.p.vy = 0;
+        }
+
+        // Change direction of player sprite based on movement direction
+        if (this.p.vx > 0 && this.p.vy < 0) {
+          this.p.angle = 45;
+        } else if (this.p.vx > 0 && this.p.vy > 0) {
+          this.p.angle = 135;
+        } else if (this.p.vx < 0 && this.p.vy > 0) {
+          this.p.angle = 225;
+        } else if (this.p.vx < 0 && this.p.vy < 0) {
+          this.p.angle = 315;
+        } else if (this.p.vx > 0) {
+          this.p.angle = 90;
+        } else if (this.p.vy > 0) {
+          this.p.angle = 180;
+        } else if (this.p.vx < 0) {
+          this.p.angle = 270;
+        } else if (this.p.vy < 0) {
+          this.p.angle = 0;
+        }
+
+        this.p.socket.emit("updatePlayer", {
+          playerId: this.p.playerId,
+          x: this.p.x,
+          y: this.p.y,
+          sheet: this.p.sheet,
+          angle: this.p.angle
+        });
       }
-
-      // Add up and down movement to platformer controls
-      if (Q.inputs['up']) {
-        if (this.p.speed == PLAYER_SPRINT_SPEED) {this.p.vy = -PLAYER_SPRINT_SPEED;}
-        else {this.p.vy = -PLAYER_WALK_SPEED;}
-      }
-      else if (Q.inputs['down']) {
-        if(this.p.speed == PLAYER_SPRINT_SPEED) {this.p.vy = PLAYER_SPRINT_SPEED;}
-        else {this.p.vy = PLAYER_WALK_SPEED;}
-      }
-      else if (!Q.inputs['down'] && !Q.inputs['up']) {this.p.vy = 0;}
-
-      // Change direction of player sprite based on movement direction
-      if (this.p.vx > 0 && this.p.vy < 0) {this.p.angle = 45;}
-      else if (this.p.vx > 0 && this.p.vy > 0) {this.p.angle = 135;}
-      else if (this.p.vx < 0 && this.p.vy > 0) {this.p.angle = 225;}
-      else if (this.p.vx < 0 && this.p.vy < 0) {this.p.angle = 315;}
-      else if(this.p.vx > 0) {this.p.angle = 90;}
-      else if (this.p.vy > 0) {this.p.angle = 180;}
-      else if (this.p.vx < 0) {this.p.angle = 270;}
-      else if(this.p.vy < 0) {this.p.angle = 0;}
-
-      this.p.socket.emit("updatePlayer", { playerId: this.p.playerId, x: this.p.x, y: this.p.y,
-                          sheet: this.p.sheet, angle: this.p.angle });
     }
 
   });
@@ -152,7 +198,7 @@ window.addEventListener("load", function() {
   // BOOST PAD CLASS
   Q.Sprite.extend("BoostPad", {
     init: function(p) {
-      this._super(p,{
+      this._super(p, {
         sheet: "boost_pad",
         type: SPRITE_BOOST,
         sensor: true
@@ -162,15 +208,15 @@ window.addEventListener("load", function() {
 
     sensor: function() {
       var temp = this;
-      setTimeout(function () {
+      setTimeout(function() {
         temp.p.sheet = "boost_pad";
       }, 3000);
     }
   });
 
-Q.Sprite.extend("WarpVial", {
+  Q.Sprite.extend("WarpVial", {
     init: function(p) {
-      this._super(p,{
+      this._super(p, {
         sheet: "warp_vial",
         type: SPRITE_WARP,
         sensor: true,
@@ -190,7 +236,7 @@ Q.Sprite.extend("WarpVial", {
 
   // ACTOR CLASS
   Q.Sprite.extend("Actor", {
-    init: function (p) {
+    init: function(p) {
       this._super(p, {
         sheet: "actor",
         type: SPRITE_ACTOR,
@@ -199,8 +245,10 @@ Q.Sprite.extend("WarpVial", {
       });
 
       var temp = this;
-      setInterval(function () {
-        if (!temp.p.update) {temp.destroy();}
+      setInterval(function() {
+        if (!temp.p.update) {
+          temp.destroy();
+        }
         temp.p.update = false;
       }, 100000);
     }
@@ -221,64 +269,94 @@ Q.Sprite.extend("WarpVial", {
   /***************************************************************************/
 
   // MULTIPLAYER SOCKET
-  function setUp (stage) {
+  function setUp(stage) {
 
-    socket.on("count", function (data) {
-      UiPlayers.innerHTML = "Players: " + data["playerCount"];
+    socket.on("count", function(data) {
+      UiPlayers.innerHTML = "Players - " + data["playerCount"];
     });
 
-    socket.on("connected_game", function (data) {
+    socket.on("connectedGame", function(data) {
       selfId = data["playerId"];
-      player = new Q.Player({ playerId: selfId, x: PLAYER_SPAWN_X, y: PLAYER_SPAWN_Y, socket: socket });
-      stage.insert(player);
-      stage.add("viewport").follow(player);
-      UiID.innerHTML = "ID: " + selfId;
+      thisPlayer = new Q.Player({
+        playerId: selfId,
+        x: PLAYER_SPAWN_X,
+        y: PLAYER_SPAWN_Y,
+        socket: socket
+      });
+      stage.insert(thisPlayer);
+      stage.add("viewport").follow(thisPlayer);
+      UiID.innerHTML = "ID - " + selfId;
       runtime = 0;
     });
 
-    socket.on("updatedActor", function (data) {
-      var actor = players.filter(function (obj) {
-          return obj.playerId == data["playerId"];
-        })[0];
+    socket.on("updatedActor", function(data) {
+      var actor = players.filter(function(obj) {
+        return obj.playerId == data["playerId"];
+      })[0];
       if (actor) {
         actor.player.p.x = data["x"];
         actor.player.p.y = data["y"];
         actor.player.p.angle = data["angle"];
         actor.player.p.sheet = "actor";
         actor.player.p.update = true;
-      }
-      else {
-        var temp = new Q.Actor({ playerId: data["playerId"], x: data["x"], y: data["y"], sheet: "actor" });
-        players.push({ player: temp, playerId: data["playerId"] });
+      } else {
+        var temp = new Q.Actor({
+          playerId: data["playerId"],
+          x: data["x"],
+          y: data["y"],
+          sheet: "actor"
+        });
+        players.push({
+          player: temp,
+          playerId: data["playerId"]
+        });
         stage.insert(temp);
       }
     });
 
   }
 
-  socket.on("updatedScore", function (data) {
-    scoreboard.push( data["scoreEntry"] );
-    var fullScoreboard = "";
+  socket.on("updatedScoreboard", function(data) {
+    scoreboard = data["scoreboard"];
+    var fullScoreboard = "[[Scoreboard]]<br>";
+    var highestscore;
+    var highestplayer;
     for (i = 0; i < scoreboard.length; i++) {
-      fullScoreboard += scoreboard[i] + "<br>";
+      fullScoreboard += "Player " + scoreboard[i].playerID + " - " + secondsToTime(scoreboard[i].score) + "<br>";
+      if (scoreboard[i].score < highestscore || highestscore == null) {
+        highestplayer = scoreboard[i].playerID;
+        highestscore = scoreboard[i].score;
+      }
     }
     UiScoreboard.innerHTML = fullScoreboard;
+    if (scoreboard.length > 0) {
+      UiHighscore.innerHTML = "[[High Score]]<br>" + highestplayer + " - " + secondsToTime(highestscore);
+    }
+    else {
+      UiHighscore.innerHTML = "There's no high score!"
+    }
   });
 
-  setInterval(function addRuntime () {
-    runtime++;
-    UiRuntime.innerHTML = "Time: " + runtime;
+  function secondsToTime(seconds) {
+    return (new Date(seconds * 1000)).toUTCString().match(/(\d\d:\d\d:\d\d)/)[0].substring(3);
+  }
+
+  setInterval(function addRuntime() {
+    if (activeGame == true) {
+      runtime++;
+    }
+    UiRuntime.innerHTML = "Time - " + secondsToTime(runtime);
   }, 1000);
 
-  setInterval(function updateWarpUses () {
-    UiWarpUses.innerHTML = "Warp: " + warpUses;
-  }, 1000);
+  setInterval(function updateWarpUses() {
+    UiWarpUses.innerHTML = "Warp - " + warpUses;
+  }, 10);
 
-  setInterval(function subtractBoostTime () {
+  setInterval(function subtractBoostTime() {
     if (boostTime > 0) {
       boostTime--;
     }
-    UiBoostTime.innerHTML = "Boost: " + boostTime;
+    UiBoostTime.innerHTML = "Boost - " + boostTime;
   }, 1000);
 
   /***************************************************************************/
@@ -286,15 +364,34 @@ Q.Sprite.extend("WarpVial", {
   /***************************************************************************/
 
   // LEVEL 1 SCENE
-  Q.scene("level1", function (stage) {
+  Q.scene("level1", function(stage) {
 
-    stage.collisionLayer(new Q.TileLayer({dataAsset: "/static/maps/maze1.json",
-        type: SPRITE_TILES, collisionMask: SPRITE_PLAYER | SPRITE_ACTOR, sheet: "tiles" }));
-    stage.insert(new Q.Ladder({ x: LADDER_SPAWN_X, y: LADDER_SPAWN_Y }));
-    stage.insert(new Q.BoostPad({ x: 688, y: 900 }));
-    vials.push(new Q.WarpVial({ x: 800, y: 1100 }),
-               new Q.WarpVial({ x: 700, y: 1100 }),
-               new Q.WarpVial({ x: 600, y: 1100 }));
+    stage.collisionLayer(new Q.TileLayer({
+      dataAsset: "/static/maps/maze1.json",
+      type: SPRITE_TILES,
+      collisionMask: SPRITE_PLAYER | SPRITE_ACTOR,
+      sheet: "tiles"
+    }));
+    stage.insert(new Q.Ladder({
+      x: LADDER_SPAWN_X,
+      y: LADDER_SPAWN_Y
+    }));
+    stage.insert(new Q.BoostPad({
+      x: 688,
+      y: 900
+    }));
+    vials.push(new Q.WarpVial({
+        x: 800,
+        y: 1100
+      }),
+      new Q.WarpVial({
+        x: 700,
+        y: 1100
+      }),
+      new Q.WarpVial({
+        x: 600,
+        y: 1100
+      }));
     stage.insert(vials[0]);
     stage.insert(vials[1]);
     stage.insert(vials[2]);
@@ -306,20 +403,31 @@ Q.Sprite.extend("WarpVial", {
   Q.scene("endGame", function(stage) {
 
     var container = stage.insert(new Q.UI.Container({
-      x: Q.width/2, y: Q.height/2, fill: "rgba(0,0,0,1)"
+      x: Q.width / 2,
+      y: Q.height / 2,
+      fill: "rgba(0,0,0,1)"
     }));
 
     var button = container.insert(new Q.UI.Button({
-      x: 0, y: 0, fill: "#CCCCCC", label: "Play Again" }))
+      x: 0,
+      y: 0,
+      fill: "#CCCCCC",
+      label: "Play Again"
+    }))
 
     var label = container.insert(new Q.UI.Text({
-      x: 0, y: -50 - button.p.h, label: stage.options.label, color: "white" }));
+      x: 0,
+      y: -50 - button.p.h,
+      label: stage.options.label,
+      color: "white"
+    }));
 
-    button.on("click",function() {
-      for (i = 0; i < vials.length; i++ ) {
+    button.on("click", function() {
+      for (i = 0; i < vials.length; i++) {
         vials[i].p.full = true;
         vials[i].p.sheet = "warp_vial";
       }
+      activeGame = true;
       Q.clearStage(1);
     });
 
@@ -330,9 +438,12 @@ Q.Sprite.extend("WarpVial", {
   // LOAD GAME ASSETS
   Q.load("/static/images/sprites.png, /static/images/sprites.json, /static/maps/maze1.json, /static/images/tiles.png",
     function() {
-      Q.sheet("tiles", "/static/images/tiles.png", { tilew: 32, tileh: 32 });
+      Q.sheet("tiles", "/static/images/tiles.png", {
+        tilew: 32,
+        tileh: 32
+      });
       Q.compileSheets("/static/images/sprites.png", "/static/images/sprites.json");
       Q.stageScene("level1"); // run the game
-  });
+    });
 
 });

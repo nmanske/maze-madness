@@ -1,103 +1,126 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <!-- Stylesheet -->
-    <link href="/static/styles/game.css" rel="stylesheet">
-    <!-- Quintus lib -->
-    <script src="/node_modules/Quintus/lib/quintus.js"></script>
-    <script src="/node_modules/Quintus/lib/quintus_sprites.js"></script>
-    <script src="/node_modules/Quintus/lib/quintus_scenes.js"></script>
-    <script src="/node_modules/Quintus/lib/quintus_input.js"></script>
-    <script src="/node_modules/Quintus/lib/quintus_2d.js"></script>
-    <script src="/node_modules/Quintus/lib/quintus_touch.js"></script>
-    <script src="/node_modules/Quintus/lib/quintus_ui.js"></script>
-    <!-- Socket.io -->
-    <script src="https://cdn.socket.io/socket.io-1.3.7.js"></script>
-    <!-- Game -->
-    <script src="/static/js/game.js"></script>
-    <style>
-      #mazeGame {
-        background-color: black;
-      }
-      .players {
-        z-index: 5;
-        position: absolute;
-        left: 30px;
-        text-align: left;
-        font-size: 1.5em;
-        margin: 30px;
-        background-color: #FFFFFF;
-        border: 1px solid black;
-        opacity: 0.6;
-      }
-      .id {
-        z-index: 5;
-        position: absolute;
-        left: 30px;
-        top: 50px;
-        text-align: left;
-        font-size: 1.5em;
-        margin: 30px;
-        background-color: #FFFFFF;
-        border: 1px solid black;
-        opacity: 0.6;
-      }
-      .scoreboard {
-        z-index: 5;
-        position: absolute;
-        left: 30px;
-        top: 90px;
-        text-align: left;
-        font-size: 1.0em;
-        margin: 30px;
-        background-color: #FFFFFF;
-        border: 1px solid black;
-        opacity: 0.6;
-      }
-      .runtime {
-        z-index: 5;
-        position: absolute;
-        right: 0;
-        text-align: right;
-        font-size: 1.5em;
-        margin: 30px;
-        background-color: #FFFFFF;
-        border: 1px solid black;
-        opacity: 0.6;
-      }
-      .warpUses {
-        z-index: 5;
-        position: absolute;
-        right: 0;
-        top: 50px;
-        text-align: right;
-        font-size: 1.5em;
-        margin: 30px;
-        background-color: #FFFFFF;
-        border: 1px solid black;
-        opacity: 0.6;
-      }
-      .boostTime {
-        z-index: 5;
-        position: absolute;
-        right: 0;
-        top: 92px;
-        text-align: right;
-        font-size: 1.5em;
-        margin: 30px;
-        background-color: #FFFFFF;
-        border: 1px solid black;
-        opacity: 0.6;
-      }
-    </style>
-  </head>
-  <body>
-    <span id="players" class="players"></span>
-    <span id="scoreboard" class="scoreboard"></span>
-    <span id="id" class="id"></span>
-    <span id="runtime" class="runtime"></span>
-    <span id="boostTime" class="boostTime"></span>
-    <span id="warpUses" class="warpUses"></span>
-    <canvas height="600" id="mazeGame" width="800"></canvas>
-  </body>
+
+<head>
+  <!-- Stylesheet -->
+  <link href="/static/styles/game.css" rel="stylesheet">
+  <!-- Quintus lib -->
+  <script src="/node_modules/Quintus/lib/quintus.js"></script>
+  <script src="/node_modules/Quintus/lib/quintus_sprites.js"></script>
+  <script src="/node_modules/Quintus/lib/quintus_scenes.js"></script>
+  <script src="/node_modules/Quintus/lib/quintus_input.js"></script>
+  <script src="/node_modules/Quintus/lib/quintus_2d.js"></script>
+  <script src="/node_modules/Quintus/lib/quintus_touch.js"></script>
+  <script src="/node_modules/Quintus/lib/quintus_ui.js"></script>
+  <!-- Socket.io -->
+  <script src="https://cdn.socket.io/socket.io-1.3.7.js"></script>
+  <!-- Game -->
+  <script src="/static/js/game.js"></script>
+  <style>
+    #mazeGame {
+      background-color: black;
+    }
+
+    .players {
+      z-index: 5;
+      position: absolute;
+      left: 30px;
+      text-align: left;
+      font-size: 1.5em;
+      margin: 30px;
+      background-color: #FFFFFF;
+      border: 1px solid black;
+      opacity: 0.6;
+    }
+
+    .id {
+      z-index: 5;
+      position: absolute;
+      left: 30px;
+      top: 50px;
+      text-align: left;
+      font-size: 1.5em;
+      margin: 30px;
+      background-color: #FFFFFF;
+      border: 1px solid black;
+      opacity: 0.6;
+    }
+
+    .scoreboard {
+      z-index: 5;
+      position: absolute;
+      left: 30px;
+      top: 100px;
+      text-align: left;
+      font-size: 1.0em;
+      margin: 30px;
+      background-color: #FFFFFF;
+      border: 1px solid black;
+      opacity: 0.6;
+    }
+
+    .highscore {
+      z-index: 5;
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      text-align: center;
+      font-size: 1.0em;
+      margin: 30px;
+      background-color: #FFFFFF;
+      border: 1px solid black;
+      opacity: 0.6;
+    }
+
+    .runtime {
+      z-index: 5;
+      position: absolute;
+      right: 0;
+      text-align: right;
+      font-size: 1.5em;
+      margin: 30px;
+      background-color: #FFFFFF;
+      border: 1px solid black;
+      opacity: 0.6;
+    }
+
+    .warpUses {
+      z-index: 5;
+      position: absolute;
+      right: 0;
+      top: 50px;
+      text-align: right;
+      font-size: 1.5em;
+      margin: 30px;
+      background-color: #FFFFFF;
+      border: 1px solid black;
+      opacity: 0.6;
+    }
+
+    .boostTime {
+      z-index: 5;
+      position: absolute;
+      right: 0;
+      top: 100px;
+      text-align: right;
+      font-size: 1.5em;
+      margin: 30px;
+      background-color: #FFFFFF;
+      border: 1px solid black;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+
+<body>
+  <span id="players" class="players"></span>
+  <span id="scoreboard" class="scoreboard"></span>
+  <span id="id" class="id"></span>
+  <span id="runtime" class="runtime"></span>
+  <span id="boostTime" class="boostTime"></span>
+  <span id="warpUses" class="warpUses"></span>
+  <span id="highscore" class="highscore"></span>
+  <canvas height="600" id="mazeGame" width="800"></canvas>
+</body>
+
 </html>
