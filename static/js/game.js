@@ -48,6 +48,8 @@ window.addEventListener("load", function() {
   // OTHER
   var players = [];
   var UiPlayers = document.getElementById("players");
+  var id = "";
+  var UiID = document.getElementById("id");
   var runtime = 0;
   var UiRuntime = document.getElementById("runtime");
   var scoreboard = [];
@@ -78,7 +80,7 @@ window.addEventListener("load", function() {
           this.p.highscore = runtime;
           var newScore = "Player " + this.p.playerId + ": " + this.p.highscore + " seconds";
           scoreboard.push( newScore );
-          var fullScoreboard = "";
+          var fullScoreboard = "Scoreboard:<br>";
           for (i = 0; i < scoreboard.length; i++) {
             fullScoreboard += scoreboard[i] + "<br>";
           }
@@ -86,6 +88,9 @@ window.addEventListener("load", function() {
           this.p.socket.emit("updateScore", { scoreEntry: newScore });
           this.p.x = PLAYER_SPAWN_X;
           this.p.y = PLAYER_SPAWN_Y;
+          runtime = 0;
+          boostTime = 0;
+          warpUses = 0;
         }
         else if (collision.obj.isA("BoostPad")) {
           this.p.speed = PLAYER_SPRINT_SPEED;
@@ -227,6 +232,7 @@ Q.Sprite.extend("WarpVial", {
       player = new Q.Player({ playerId: selfId, x: PLAYER_SPAWN_X, y: PLAYER_SPAWN_Y, socket: socket });
       stage.insert(player);
       stage.add("viewport").follow(player);
+      UiID.innerHTML = "ID: " + selfId;
       runtime = 0;
     });
 
@@ -310,8 +316,6 @@ Q.Sprite.extend("WarpVial", {
       x: 0, y: -50 - button.p.h, label: stage.options.label, color: "white" }));
 
     button.on("click",function() {
-      runtime = 0;
-      warpUses = 0;
       for (i = 0; i < vials.length; i++ ) {
         vials[i].p.full = true;
         vials[i].p.sheet = "warp_vial";

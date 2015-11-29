@@ -15,8 +15,6 @@
     <script src="https://cdn.socket.io/socket.io-1.3.7.js"></script>
     <!-- Game -->
     <script src="/static/js/game.js"></script>
-<<<<<<< HEAD
-=======
     <style>
       #mazeGame {
         background-color: black;
@@ -24,19 +22,20 @@
       .players {
         z-index: 5;
         position: absolute;
-        right: 0;
-        text-align: right;
+        left: 30px;
+        text-align: left;
         font-size: 1.5em;
         margin: 30px;
         background-color: #FFFFFF;
         border: 1px solid black;
         opacity: 0.6;
       }
-      .runtime {
+      .id {
         z-index: 5;
         position: absolute;
-        right: 175px;
-        text-align: right;
+        left: 30px;
+        top: 50px;
+        text-align: left;
         font-size: 1.5em;
         margin: 30px;
         background-color: #FFFFFF;
@@ -47,8 +46,20 @@
         z-index: 5;
         position: absolute;
         left: 30px;
-        text-align: right;
+        top: 90px;
+        text-align: left;
         font-size: 1.0em;
+        margin: 30px;
+        background-color: #FFFFFF;
+        border: 1px solid black;
+        opacity: 0.6;
+      }
+      .runtime {
+        z-index: 5;
+        position: absolute;
+        right: 0;
+        text-align: right;
+        font-size: 1.5em;
         margin: 30px;
         background-color: #FFFFFF;
         border: 1px solid black;
@@ -79,12 +90,12 @@
         opacity: 0.6;
       }
     </style>
->>>>>>> scoreboard
   </head>
   <body>
     <span id="players" class="players"></span>
-    <span id="runtime" class="runtime"></span>
     <span id="scoreboard" class="scoreboard"></span>
+    <span id="id" class="id"></span>
+    <span id="runtime" class="runtime"></span>
     <span id="boostTime" class="boostTime"></span>
     <span id="warpUses" class="warpUses"></span>
     <canvas height="600" id="mazeGame" width="800"></canvas>
