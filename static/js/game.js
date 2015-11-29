@@ -42,6 +42,9 @@ window.addEventListener("load", function() {
   var PLAYER_WALK_SPEED = 200;
   var PLAYER_SPRINT_SPEED = 300;
 
+  // ITEMS
+  var vials = [];
+
   // OTHER
   var players = [];
   var UiPlayers = document.getElementById("players");
@@ -51,6 +54,8 @@ window.addEventListener("load", function() {
   var UiScoreboard = document.getElementById("scoreboard");
   var boostTime = 0;
   var UiBoostTime = document.getElementById("boostTime");
+  var warpUses = 0;
+  var UiWarpUses = document.getElementById("warpUses");
 
   /***************************************************************************/
   /*                            GAME CLASSES                                 */
@@ -64,7 +69,6 @@ window.addEventListener("load", function() {
         sheet: "player",
         type: SPRITE_PLAYER,
         collisionMask:  SPRITE_TILES | SPRITE_LADDER | SPRITE_BOOST | SPRITE_WARP,
-        warpUses: 0,
         highscore: "N/A"
       });
       this.add("2d, platformerControls");
@@ -83,12 +87,9 @@ window.addEventListener("load", function() {
           this.p.x = PLAYER_SPAWN_X;
           this.p.y = PLAYER_SPAWN_Y;
         }
-        else if (collision.obj.isA("BoostPad") && boostTime == 0) {
+        else if (collision.obj.isA("BoostPad")) {
           this.p.speed = PLAYER_SPRINT_SPEED;
           boostTime = 8;
-        }
-        else if (collision.obj.isA("WarpVial") && obj.sheet != "empty_vial") {
-
         }
       });
       Q.input.on("warp", this, "warpPlayer");
@@ -96,14 +97,17 @@ window.addEventListener("load", function() {
     },
 
     warpPlayer: function() {
-      if (Q.inputs['right'] && Q.inputs['up']) {this.p.x += 32; this.p.y -= 32;}
-      else if (Q.inputs['right'] && Q.inputs['down']) {this.p.x += 32; this.p.y += 32;}
-      else if (Q.inputs['left'] && Q.inputs['down']) {this.p.x -= 32; this.p.y += 32;}
-      else if (Q.inputs['left'] && Q.inputs['up']) {this.p.x -= 32; this.p.y -= 32;}
-      else if(Q.inputs['right']) {this.p.x += 32;}
-      else if (Q.inputs['down']) {this.p.y += 32;}
-      else if (Q.inputs['left']) {this.p.x -= 32;}
-      else if(Q.inputs['up']) {this.p.y -= 32;}
+      if (warpUses > 0) {
+        warpUses--;
+        if (Q.inputs['right'] && Q.inputs['up']) {this.p.x += 32; this.p.y -= 32;}
+        else if (Q.inputs['right'] && Q.inputs['down']) {this.p.x += 32; this.p.y += 32;}
+        else if (Q.inputs['left'] && Q.inputs['down']) {this.p.x -= 32; this.p.y += 32;}
+        else if (Q.inputs['left'] && Q.inputs['up']) {this.p.x -= 32; this.p.y -= 32;}
+        else if(Q.inputs['right']) {this.p.x += 32;}
+        else if (Q.inputs['down']) {this.p.y += 32;}
+        else if (Q.inputs['left']) {this.p.x -= 32;}
+        else if(Q.inputs['up']) {this.p.y -= 32;}
+      }
     },
 
     // Step is called whenever an arrow key is pressed
@@ -159,23 +163,23 @@ window.addEventListener("load", function() {
     }
   });
 
-  // WARP VIAL CLASS
-  Q.Sprite.extend("WarpVial", {
+Q.Sprite.extend("WarpVial", {
     init: function(p) {
       this._super(p,{
         sheet: "warp_vial",
         type: SPRITE_WARP,
-        sensor: true
+        sensor: true,
+        full: true
       });
       this.on("sensor");
     },
 
     sensor: function() {
-      this.p.sheet = "empty_vial";
-      var temp = this;
-      setTimeout(function () {
-        temp.p.sheet = "warp_vial";
-      }, 3000);
+      if (this.p.full == true) {
+        warpUses++;
+        this.p.sheet = "empty_vial";
+        this.p.full = false;
+      }
     }
   });
 
@@ -256,13 +260,17 @@ window.addEventListener("load", function() {
   });
 
   setInterval(function addRuntime () {
-    runtime = runtime + 1;
+    runtime++;
     UiRuntime.innerHTML = "Time: " + runtime;
+  }, 1000);
+
+  setInterval(function updateWarpUses () {
+    UiWarpUses.innerHTML = "Warp: " + warpUses;
   }, 1000);
 
   setInterval(function subtractBoostTime () {
     if (boostTime > 0) {
-      boostTime = boostTime - 1;
+      boostTime--;
     }
     UiBoostTime.innerHTML = "Boost: " + boostTime;
   }, 1000);
@@ -278,7 +286,12 @@ window.addEventListener("load", function() {
         type: SPRITE_TILES, collisionMask: SPRITE_PLAYER | SPRITE_ACTOR, sheet: "tiles" }));
     stage.insert(new Q.Ladder({ x: LADDER_SPAWN_X, y: LADDER_SPAWN_Y }));
     stage.insert(new Q.BoostPad({ x: 688, y: 900 }));
-    stage.insert(new Q.WarpVial({ x: 800, y: 1100 }))
+    vials.push(new Q.WarpVial({ x: 800, y: 1100 }),
+               new Q.WarpVial({ x: 700, y: 1100 }),
+               new Q.WarpVial({ x: 600, y: 1100 }));
+    stage.insert(vials[0]);
+    stage.insert(vials[1]);
+    stage.insert(vials[2]);
     setUp(stage);
 
   });
@@ -298,6 +311,11 @@ window.addEventListener("load", function() {
 
     button.on("click",function() {
       runtime = 0;
+      warpUses = 0;
+      for (i = 0; i < vials.length; i++ ) {
+        vials[i].p.full = true;
+        vials[i].p.sheet = "warp_vial";
+      }
       Q.clearStage(1);
     });
 
@@ -306,7 +324,7 @@ window.addEventListener("load", function() {
   });
 
   // LOAD GAME ASSETS
-  Q.load("/static/images/sprites.png, /static/images/sprites.json, /static/maps/maze1.json, /static/maps/maze2.json, /static/images/tiles.png",
+  Q.load("/static/images/sprites.png, /static/images/sprites.json, /static/maps/maze1.json, /static/images/tiles.png",
     function() {
       Q.sheet("tiles", "/static/images/tiles.png", { tilew: 32, tileh: 32 });
       Q.compileSheets("/static/images/sprites.png", "/static/images/sprites.json");
