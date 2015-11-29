@@ -14,9 +14,58 @@
       #mazeGame {
         background-color: black;
       }
+      .players {
+        z-index: 5;
+        position: absolute;
+        right: 0;
+        text-align: right;
+        font-size: 1.5em;
+        margin: 30px;
+        background-color: #FFFFFF;
+        border: 1px solid black;
+        opacity: 0.6;
+      }
+      .runtime {
+        z-index: 5;
+        position: absolute;
+        right: 175px;
+        text-align: right;
+        font-size: 1.5em;
+        margin: 30px;
+        background-color: #FFFFFF;
+        border: 1px solid black;
+        opacity: 0.6;
+      }
+      .scoreboard {
+        z-index: 5;
+        position: absolute;
+        left: 30px;
+        text-align: right;
+        font-size: 1.0em;
+        margin: 30px;
+        background-color: #FFFFFF;
+        border: 1px solid black;
+        opacity: 0.6;
+      }
+      .boostTime {
+        z-index: 5;
+        position: absolute;
+        right: 0;
+        top: 50px;
+        text-align: right;
+        font-size: 1.5em;
+        margin: 30px;
+        background-color: #FFFFFF;
+        border: 1px solid black;
+        opacity: 0.6;
+      }
     </style>
   </head>
   <body>
-    <canvas height="600" id="mazeGame" width="600"></canvas>
+    <span id="players" class="players"></span>
+    <span id="runtime" class="runtime"></span>
+    <span id="scoreboard" class="scoreboard"></span>
+    <span id="boostTime" class="boostTime"></span>
+    <canvas height="600" id="mazeGame" width="800"></canvas>
   </body>
 </html>
