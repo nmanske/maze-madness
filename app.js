@@ -18,9 +18,15 @@ var scoreboard = []
 var playerCount = 0
 var id = 0
 
+var nicknames = []
+
+// GAME LOGIC
+
 io.on("connection", function(socket) {
   playerCount++
   id++
+
+  /* GAME LOGIC */
 
   setTimeout(function startGame() {
     socket.emit("connectedGame", {
@@ -29,7 +35,7 @@ io.on("connection", function(socket) {
     io.emit("count", {
       playerCount: playerCount
     })
-  }, 1750)
+  }, 1500)
 
   socket.on("disconnect", function() {
     playerCount--
@@ -43,17 +49,51 @@ io.on("connection", function(socket) {
   })
 
   socket.on("pushScore", function(data) {
-    scoreboard.push({playerID: data["playerID"], score: data["score"]})
+    scoreboard.push({
+      playerID: data["playerID"],
+      score: data["score"]
+    })
     if (scoreboard.length == 22) {
       scoreboard.splice(1, 1)
     }
+    refreshScoreboard()
   })
 
-  setInterval(function updatedScoreboard() {
+  function refreshScoreboard() {
     io.emit("updatedScoreboard", {
       scoreboard: scoreboard
     })
-  }, 1750)
+  }
+
+  setTimeout(function initializeScoreboard() {
+    io.emit("updatedScoreboard", {
+      scoreboard: scoreboard
+    })
+  }, 1500)
+
+  /* CHAT LOGIC */
+
+  socket.on('new user', function(data, callback) {
+    if (nicknames.indexOf(data) != -1) {
+      callback(false)
+    } else {
+      callback(true)
+      socket.nickname = data
+      nicknames.push(socket.nickname)
+      updateNicknames()
+    }
+  })
+
+  function updateNicknames() {
+    io.sockets.emit('usernames', nicknames)
+  }
+
+  socket.on('send message', function(data) {
+    io.sockets.emit('new message', {
+      msg: data,
+      nick: socket.nickname
+    })
+  })
 
 })
 

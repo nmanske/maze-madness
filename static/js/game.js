@@ -5,7 +5,7 @@ window.addEventListener("load", function() {
       development: true
     })
     .include("Sprites, Scenes, Input, 2D, Touch, UI")
-    .setup("mazeGame", {maximize: true})
+    .setup("mazeGame")
     .controls()
     .touch();
 
@@ -19,7 +19,7 @@ window.addEventListener("load", function() {
       ['up', '^'],
       ['down', 'v'],
       ['right', '>'],
-      ['warp', 't']
+      ['warp', 'w']
     ]
   });
 
@@ -250,7 +250,7 @@ window.addEventListener("load", function() {
           temp.destroy();
         }
         temp.p.update = false;
-      }, 100000);
+      }, 1000000);
     }
   });
 
@@ -272,7 +272,9 @@ window.addEventListener("load", function() {
   function setUp(stage) {
 
     socket.on("count", function(data) {
-      UiPlayers.innerHTML = "Players - " + data["playerCount"];
+      if (thisPlayer != undefined) {
+        UiPlayers.innerHTML = "Players - " + data["playerCount"];
+      }
     });
 
     socket.on("connectedGame", function(data) {
@@ -318,7 +320,7 @@ window.addEventListener("load", function() {
 
   socket.on("updatedScoreboard", function(data) {
     scoreboard = data["scoreboard"];
-    var fullScoreboard = "[[Scoreboard]]<br>";
+    var fullScoreboard = "<b>[[Scoreboard]]</b><br>";
     var highestscore;
     var highestplayer;
     for (i = 0; i < scoreboard.length; i++) {
@@ -328,12 +330,14 @@ window.addEventListener("load", function() {
         highestscore = scoreboard[i].score;
       }
     }
-    UiScoreboard.innerHTML = fullScoreboard;
-    if (scoreboard.length > 0) {
-      UiHighscore.innerHTML = "[[High Score]]<br>" + highestplayer + " - " + secondsToTime(highestscore);
-    }
-    else {
-      UiHighscore.innerHTML = "There's no high score!"
+    if (thisPlayer != undefined) {
+      UiScoreboard.innerHTML = fullScoreboard;
+      if (scoreboard.length > 0) {
+        UiHighscore.innerHTML = "<b>[[High Score]]</b><br>" + highestplayer + " - " + secondsToTime(highestscore);
+      }
+      else {
+        UiHighscore.innerHTML = "There's no high score!"
+      }
     }
   });
 
@@ -345,19 +349,31 @@ window.addEventListener("load", function() {
     if (activeGame == true) {
       runtime++;
     }
-    UiRuntime.innerHTML = "Time - " + secondsToTime(runtime);
   }, 1000);
-
-  setInterval(function updateWarpUses() {
-    UiWarpUses.innerHTML = "Warp - " + warpUses;
-  }, 10);
 
   setInterval(function subtractBoostTime() {
     if (boostTime > 0) {
       boostTime--;
     }
-    UiBoostTime.innerHTML = "Boost - " + boostTime;
   }, 1000);
+
+  setInterval(function updateRuntime() {
+    if (thisPlayer != undefined) {
+      UiRuntime.innerHTML = "Time - " + secondsToTime(runtime);
+    }
+  }, 10);
+
+  setInterval(function updateBoostTime() {
+    if (thisPlayer != undefined) {
+      UiBoostTime.innerHTML = "Boost - " + boostTime;
+    }
+  }, 10);
+
+  setInterval(function updateWarpUses() {
+    if (thisPlayer != undefined) {
+      UiWarpUses.innerHTML = "Warp - " + warpUses;
+    }
+  }, 10);
 
   /***************************************************************************/
   /*                            LEVEL SCENES                                 */
