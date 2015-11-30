@@ -371,7 +371,7 @@ window.addEventListener("load", function() {
 
   setInterval(function updateWarpUses() {
     if (thisPlayer != undefined) {
-      UiWarpUses.innerHTML = "Warp - " + warpUses;
+      UiWarpUses.innerHTML = "Warp (Press X) - " + warpUses;
     }
   }, 10);
 
