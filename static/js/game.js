@@ -37,10 +37,10 @@ window.addEventListener("load", function() {
   var SPRITE_WARP = 32;
 
   // SPAWN POINTS
-  var PLAYER_SPAWN_X = 688;
-  var PLAYER_SPAWN_Y = 976;
-  var LADDER_SPAWN_X = 688;
-  var LADDER_SPAWN_Y = 800;
+  var PLAYER_SPAWN_X = 1230;
+  var PLAYER_SPAWN_Y = 1070;
+  var LADDER_SPAWN_X = 145;
+  var LADDER_SPAWN_Y = 145;
 
   // MOVEMENT
   var PLAYER_WALK_SPEED = 200;
