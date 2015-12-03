@@ -183,7 +183,7 @@
             });
 
             socket.on('new message', function(data) {
-              $chat.append('<b>' + data.nick + ': </b>' + data.msg + "<br/>");
+              $chat.append('<b>' + data.nick + ' (' + data.playerID + '): </b>' + data.msg + "<br/>");
             });
           });
         </script>

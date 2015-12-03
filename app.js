@@ -87,7 +87,8 @@ io.on("connection", function(socket) {
   socket.on("send message", function(data) {
     io.sockets.emit("new message", {
       msg: data,
-      nick: socket.nickname
+      nick: socket.nickname,
+      playerID: id
     })
   })
 
