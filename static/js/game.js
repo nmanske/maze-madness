@@ -37,10 +37,10 @@ window.addEventListener("load", function() {
   var SPRITE_WARP = 32;
 
   // SPAWN POINTS
-  var PLAYER_SPAWN_X = 688;
-  var PLAYER_SPAWN_Y = 976;
-  var LADDER_SPAWN_X = 688;
-  var LADDER_SPAWN_Y = 800;
+  var PLAYER_SPAWN_X = 1230;
+  var PLAYER_SPAWN_Y = 1070;
+  var LADDER_SPAWN_X = 145;
+  var LADDER_SPAWN_Y = 145;
 
   // MOVEMENT
   var PLAYER_WALK_SPEED = 200;
@@ -101,7 +101,7 @@ window.addEventListener("load", function() {
           warpUses = 0;
           activeGame = false;
         } else if (collision.obj.isA("BoostPad")) {
-          boostTime = 8;
+          boostTime = 7;
         }
       });
       Q.input.on("warp", this, "warpPlayer");
@@ -250,7 +250,7 @@ window.addEventListener("load", function() {
           temp.destroy();
         }
         temp.p.update = false;
-      }, 1000000);
+      }, 10000);
     }
   });
 
@@ -371,7 +371,7 @@ window.addEventListener("load", function() {
 
   setInterval(function updateWarpUses() {
     if (thisPlayer != undefined) {
-      UiWarpUses.innerHTML = "Warp - " + warpUses;
+      UiWarpUses.innerHTML = "Warp (Press X) - " + warpUses;
     }
   }, 10);
 
@@ -393,21 +393,33 @@ window.addEventListener("load", function() {
       y: LADDER_SPAWN_Y
     }));
     stage.insert(new Q.BoostPad({
-      x: 688,
-      y: 900
+      x: 912,
+      y: 817
+    }));
+    stage.insert(new Q.BoostPad({
+      x: 560,
+      y: 304
+    }));
+    stage.insert(new Q.BoostPad({
+      x: 1010,
+      y: 175
+    }));
+    stage.insert(new Q.BoostPad({
+      x: 304,
+      y: 815
     }));
     vials.push(new Q.WarpVial({
-        x: 800,
-        y: 1100
+        x: 656,
+        y: 689
       }),
       new Q.WarpVial({
-        x: 700,
-        y: 1100
+        x: 912,
+        y: 849
       }),
-      new Q.WarpVial({
-        x: 600,
-        y: 1100
-      }));
+    new Q.WarpVial({
+      x: 336,
+      y: 176
+    }));
     stage.insert(vials[0]);
     stage.insert(vials[1]);
     stage.insert(vials[2]);

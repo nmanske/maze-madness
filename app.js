@@ -3,8 +3,8 @@ var app = express()
 var server = require("http").Server(app)
 var io = require("socket.io")(server)
 
-app.use("/static", express.static(__dirname + '/static'))
-app.use("/node_modules", express.static(__dirname + '/node_modules'))
+app.use("/static", express.static(__dirname + "/static"))
+app.use("/node_modules", express.static(__dirname + "/node_modules"))
 
 app.get("/", function(req, res) {
   res.sendFile(__dirname + "/views/splashpage.html")
@@ -73,23 +73,19 @@ io.on("connection", function(socket) {
 
   /* CHAT LOGIC */
 
-  socket.on('new user', function(data, callback) {
+  socket.on("new user", function(data, callback) {
     if (nicknames.indexOf(data) != -1) {
       callback(false)
     } else {
       callback(true)
       socket.nickname = data
       nicknames.push(socket.nickname)
-      updateNicknames()
+      //io.sockets.emit("changePlayerID", socket.nickname) // <--- pick up from here
     }
   })
 
-  function updateNicknames() {
-    io.sockets.emit('usernames', nicknames)
-  }
-
-  socket.on('send message', function(data) {
-    io.sockets.emit('new message', {
+  socket.on("send message", function(data) {
+    io.sockets.emit("new message", {
       msg: data,
       nick: socket.nickname
     })
